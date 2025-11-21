@@ -26,8 +26,7 @@ export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess })
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (origin && destination && date) {
-            // Calculate distance (Haversine) - simplified for now
-            const distance = 0; // TODO: Implement distance calc
+            const distance = 0; // Distance is calculated in context
 
             addFlight({
                 id: uuidv4(),
@@ -51,111 +50,116 @@ export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess })
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h3 className="text-xl font-heading text-navy mb-4">Add Flight</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Origin */}
+            <div className="relative">
+                <label className="block text-sm font-bold mb-2 text-white/90">
+                    origin
+                </label>
                 <div className="relative">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Origin</label>
-                    <div className="flex items-center border rounded-md p-2 focus-within:ring-2 ring-navy">
-                        <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                        <input
-                            type="text"
-                            value={originQuery}
-                            onChange={(e) => {
-                                setOriginQuery(e.target.value);
-                                setShowOriginResults(true);
-                                if (!e.target.value) setOrigin(null);
-                            }}
-                            placeholder="City or Airport Code"
-                            className="w-full outline-none"
-                        />
-                    </div>
-                    {showOriginResults && originQuery && (
-                        <ul className="absolute z-10 w-full bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-auto">
-                            {originResults.map((airport) => (
-                                <li
-                                    key={airport.code}
-                                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => {
-                                        setOrigin(airport);
-                                        setOriginQuery(`${airport.city} (${airport.code})`);
-                                        setShowOriginResults(false);
-                                    }}
-                                >
-                                    <div className="font-bold">{airport.code}</div>
-                                    <div className="text-sm text-gray-600">{airport.city}, {airport.country}</div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
+                    <input
+                        type="text"
+                        value={originQuery}
+                        onChange={(e) => {
+                            setOriginQuery(e.target.value);
+                            setShowOriginResults(true);
+                            if (!e.target.value) setOrigin(null);
+                        }}
+                        placeholder="JFK, LHR, etc."
+                        className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 text-white placeholder-white/40"
+                    />
                 </div>
+                {showOriginResults && originQuery && (
+                    <ul className="absolute z-10 w-full mt-1 bg-navy/95 backdrop-blur-md border border-white/20 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {originResults.map((airport) => (
+                            <li
+                                key={airport.code}
+                                onClick={() => {
+                                    setOrigin(airport);
+                                    setOriginQuery(`${airport.city} (${airport.code})`);
+                                    setShowOriginResults(false);
+                                }}
+                                className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white"
+                            >
+                                <span className="font-bold">{airport.code}</span> - {airport.city}, {airport.country}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
 
+            {/* Destination */}
+            <div className="relative">
+                <label className="block text-sm font-bold mb-2 text-white/90">
+                    destination
+                </label>
                 <div className="relative">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Destination</label>
-                    <div className="flex items-center border rounded-md p-2 focus-within:ring-2 ring-navy">
-                        <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                        <input
-                            type="text"
-                            value={destinationQuery}
-                            onChange={(e) => {
-                                setDestinationQuery(e.target.value);
-                                setShowDestResults(true);
-                                if (!e.target.value) setDestination(null);
-                            }}
-                            placeholder="City or Airport Code"
-                            className="w-full outline-none"
-                        />
-                    </div>
-                    {showDestResults && destinationQuery && (
-                        <ul className="absolute z-10 w-full bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-auto">
-                            {destResults.map((airport) => (
-                                <li
-                                    key={airport.code}
-                                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => {
-                                        setDestination(airport);
-                                        setDestinationQuery(`${airport.city} (${airport.code})`);
-                                        setShowDestResults(false);
-                                    }}
-                                >
-                                    <div className="font-bold">{airport.code}</div>
-                                    <div className="text-sm text-gray-600">{airport.city}, {airport.country}</div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
+                    <input
+                        type="text"
+                        value={destinationQuery}
+                        onChange={(e) => {
+                            setDestinationQuery(e.target.value);
+                            setShowDestResults(true);
+                            if (!e.target.value) setDestination(null);
+                        }}
+                        placeholder="JFK, LHR, etc."
+                        className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 text-white placeholder-white/40"
+                    />
                 </div>
+                {showDestResults && destinationQuery && (
+                    <ul className="absolute z-10 w-full mt-1 bg-navy/95 backdrop-blur-md border border-white/20 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {destResults.map((airport) => (
+                            <li
+                                key={airport.code}
+                                onClick={() => {
+                                    setDestination(airport);
+                                    setDestinationQuery(`${airport.city} (${airport.code})`);
+                                    setShowDestResults(false);
+                                }}
+                                className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white"
+                            >
+                                <span className="font-bold">{airport.code}</span> - {airport.city}, {airport.country}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
 
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Date</label>
-                    <div className="flex items-center border rounded-md p-2 focus-within:ring-2 ring-navy">
-                        <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            className="w-full outline-none"
-                        />
-                    </div>
+            {/* Date */}
+            <div>
+                <label className="block text-sm font-bold mb-2 text-white/90">
+                    date
+                </label>
+                <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 text-white"
+                    />
                 </div>
             </div>
+
             <div className="flex gap-2 mt-4">
                 {onCancel && (
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-lg font-bold hover:bg-gray-200 transition-colors"
+                        className="flex-1 bg-white/10 text-white py-3 rounded-lg font-bold hover:bg-white/20 transition-colors border border-white/20"
                     >
-                        Cancel
+                        cancel
                     </button>
                 )}
                 <button
                     type="submit"
                     disabled={!origin || !destination || !date}
-                    className="flex-1 bg-navy text-white py-3 rounded-lg font-bold hover:bg-navy/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 bg-white/20 text-white py-3 rounded-lg font-bold hover:bg-white/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 border border-white/20"
                 >
                     <Plus size={18} />
-                    Add Flight
+                    add flight
                 </button>
             </div>
         </form>
