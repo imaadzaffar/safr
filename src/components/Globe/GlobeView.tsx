@@ -16,7 +16,7 @@ export const GlobeView: React.FC = () => {
     const [viewState, setViewState] = useState({
         longitude: -100,
         latitude: 40,
-        zoom: 1.5,
+        zoom: window.innerWidth < 768 ? 0.8 : 1.5, // Lower zoom for mobile
     });
     const [animationIndex, setAnimationIndex] = useState(0);
     const requestRef = useRef<number>(0);

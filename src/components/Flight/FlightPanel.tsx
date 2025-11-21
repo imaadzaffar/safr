@@ -8,9 +8,9 @@ export const FlightPanel: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(true);
 
     return (
-        <div className="absolute top-24 right-6 w-80 z-20 flex flex-col gap-4 pointer-events-none">
+        <div className="absolute md:top-24 bottom-0 md:bottom-auto left-0 md:left-auto md:right-6 w-full md:w-80 z-20 flex flex-col gap-4 pointer-events-none">
             {/* Main Panel */}
-            <div className={`bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 pointer-events-auto flex flex-col ${isExpanded ? 'max-h-[70vh]' : 'max-h-16'}`}>
+            <div className={`bg-white/10 backdrop-blur-xl border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 pointer-events-auto flex flex-col ${isExpanded ? 'max-h-[70vh]' : 'max-h-16'}`}>
 
                 {/* Header */}
                 <div
