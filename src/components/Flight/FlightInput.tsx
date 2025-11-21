@@ -4,6 +4,7 @@ import { searchAirports } from '../../utils/airports';
 import type { Airport } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { Calendar, MapPin, Plus } from 'lucide-react';
+import { DatePicker } from './DatePicker';
 import { calculateDistance } from '../../utils/distance';
 
 interface FlightInputProps {
@@ -78,21 +79,27 @@ export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess })
                     />
                 </div>
                 {showOriginResults && originQuery && (
-                    <ul className="absolute z-10 w-full mt-1 bg-navy/95 backdrop-blur-md border border-white/20 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {originResults.map((airport) => (
-                            <li
-                                key={airport.code}
-                                onClick={() => {
-                                    setOrigin(airport);
-                                    setOriginQuery(`${airport.city} (${airport.code})`);
-                                    setShowOriginResults(false);
-                                }}
-                                className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white"
-                            >
-                                <span className="font-bold">{airport.code}</span> - {airport.city}, {airport.country}
-                            </li>
-                        ))}
-                    </ul>
+                    <>
+                        <div
+                            className="fixed inset-0 z-20"
+                            onClick={() => setShowOriginResults(false)}
+                        />
+                        <ul className="absolute z-30 w-full mt-1 bg-gray-800 backdrop-blur-xl border border-white/20 rounded-md shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
+                            {originResults.map((airport) => (
+                                <li
+                                    key={airport.code}
+                                    onClick={() => {
+                                        setOrigin(airport);
+                                        setOriginQuery(`${airport.city} (${airport.code})`);
+                                        setShowOriginResults(false);
+                                    }}
+                                    className="px-4 py-2 hover:bg-white/20 cursor-pointer text-white"
+                                >
+                                    <span className="font-bold">{airport.code}</span> - {airport.city}, {airport.country}
+                                </li>
+                            ))}
+                        </ul>
+                    </>
                 )}
             </div>
 
@@ -116,21 +123,27 @@ export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess })
                     />
                 </div>
                 {showDestResults && destinationQuery && (
-                    <ul className="absolute z-10 w-full mt-1 bg-navy/95 backdrop-blur-md border border-white/20 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {destResults.map((airport) => (
-                            <li
-                                key={airport.code}
-                                onClick={() => {
-                                    setDestination(airport);
-                                    setDestinationQuery(`${airport.city} (${airport.code})`);
-                                    setShowDestResults(false);
-                                }}
-                                className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white"
-                            >
-                                <span className="font-bold">{airport.code}</span> - {airport.city}, {airport.country}
-                            </li>
-                        ))}
-                    </ul>
+                    <>
+                        <div
+                            className="fixed inset-0 z-20"
+                            onClick={() => setShowDestResults(false)}
+                        />
+                        <ul className="absolute z-30 w-full mt-1 bg-gray-800 backdrop-blur-xl border border-white/20 rounded-md shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
+                            {destResults.map((airport) => (
+                                <li
+                                    key={airport.code}
+                                    onClick={() => {
+                                        setDestination(airport);
+                                        setDestinationQuery(`${airport.city} (${airport.code})`);
+                                        setShowDestResults(false);
+                                    }}
+                                    className="px-4 py-2 hover:bg-white/20 cursor-pointer text-white"
+                                >
+                                    <span className="font-bold">{airport.code}</span> - {airport.city}, {airport.country}
+                                </li>
+                            ))}
+                        </ul>
+                    </>
                 )}
             </div>
 
@@ -140,13 +153,8 @@ export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess })
                     date
                 </label>
                 <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
-                    <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-white/30 text-white"
-                    />
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 z-10 pointer-events-none" size={18} />
+                    <DatePicker value={date} onChange={setDate} />
                 </div>
             </div>
 

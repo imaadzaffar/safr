@@ -10,7 +10,7 @@ export const FlightPanel: React.FC = () => {
     return (
         <div className="absolute md:top-24 bottom-0 md:bottom-auto left-0 md:left-auto md:right-6 w-full md:w-80 z-20 flex flex-col gap-4 pointer-events-none">
             {/* Main Panel */}
-            <div className={`bg-white/10 backdrop-blur-xl border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 pointer-events-auto flex flex-col ${isExpanded ? 'max-h-[70vh]' : 'max-h-16'}`}>
+            <div className={`bg-white/10 backdrop-blur-xl border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl overflow-visible transition-all duration-300 pointer-events-auto flex flex-col ${isExpanded ? 'max-h-[70vh]' : 'max-h-16'}`}>
 
                 {/* Header */}
                 <div
@@ -48,7 +48,7 @@ export const FlightPanel: React.FC = () => {
                 </div>
 
                 {/* Content */}
-                <div className={`flex-1 overflow-y-auto custom-scrollbar transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
+                <div className={`flex-1 overflow-y-auto overflow-x-visible custom-scrollbar transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
                     {isAdding ? (
                         <div className="p-4">
                             <FlightInput onCancel={() => setIsAdding(false)} onSuccess={() => setIsAdding(false)} />
