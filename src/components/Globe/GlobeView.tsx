@@ -20,14 +20,35 @@ export const GlobeView: React.FC = () => {
     });
     const [animationIndex, setAnimationIndex] = useState(0);
     const requestRef = useRef<number>(0);
+    const [selectedCountry, setSelectedCountry] = useState<{ name: string; code: string; x: number; y: number } | null>(null);
+    const mapRef = useRef<any>(null);
+    const [isPaused, setIsPaused] = useState(false);
+    const inactivityTimerRef = useRef<number | null>(null);
+
+    // Handle user interaction - pause rotation and set cooldown timer
+    const handleUserInteraction = () => {
+        setIsPaused(true);
+
+        // Clear existing timer
+        if (inactivityTimerRef.current) {
+            clearTimeout(inactivityTimerRef.current);
+        }
+
+        // Set new timer to resume after 3 seconds of inactivity
+        inactivityTimerRef.current = setTimeout(() => {
+            setIsPaused(false);
+        }, 10000);
+    };
 
     // Auto-rotate globe
     useEffect(() => {
         const rotateGlobe = () => {
-            setViewState((prev) => ({
-                ...prev,
-                longitude: prev.longitude + 0.01,
-            }));
+            if (!isPaused) {
+                setViewState((prev) => ({
+                    ...prev,
+                    longitude: prev.longitude + 0.01,
+                }));
+            }
             requestRef.current = requestAnimationFrame(rotateGlobe);
         };
 
@@ -36,7 +57,7 @@ export const GlobeView: React.FC = () => {
         return () => {
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
         };
-    }, []);
+    }, [isPaused]);
 
     // Animate flight paths
     // We'll use a simple counter to simulate "flow" along the lines
@@ -132,40 +153,30 @@ export const GlobeView: React.FC = () => {
         };
     }, [flights, animationIndex]);
 
-
-    const [countriesGeoJSON, setCountriesGeoJSON] = useState<any>(null);
-
-    useEffect(() => {
-        fetch('https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_0_countries.geojson')
-            .then(res => res.json())
-            .then(data => setCountriesGeoJSON(data));
-    }, []);
-
-    // Prepare visited countries GeoJSON
-    const visitedCountriesGeoJSON = useMemo(() => {
-        if (!countriesGeoJSON) return null;
-
-        const visitedCountryCodes = new Set<string>();
+    // Get list of visited country codes
+    const visitedCountryCodes = useMemo(() => {
+        const codes = new Set<string>();
         flights.forEach(f => {
             const origin = airports.find(a => a.code === f.origin);
             const dest = airports.find(a => a.code === f.destination);
-            if (origin?.countryCode) visitedCountryCodes.add(origin.countryCode);
-            if (dest?.countryCode) visitedCountryCodes.add(dest.countryCode);
+            if (origin?.countryCode) codes.add(origin.countryCode);
+            if (dest?.countryCode) codes.add(dest.countryCode);
         });
+        return Array.from(codes);
+    }, [flights]);
 
-        return {
-            type: 'FeatureCollection',
-            features: countriesGeoJSON.features.filter((f: any) =>
-                visitedCountryCodes.has(f.properties.adm0_a3) || visitedCountryCodes.has(f.properties.iso_a3)
-            )
-        };
-    }, [flights, countriesGeoJSON]);
-
-    const countryLayer: Omit<FillLayer, 'source'> = {
-        id: 'visited-countries',
+    // Country fill layer - colors visited countries using Mapbox boundaries
+    const visitedCountriesLayer: Omit<FillLayer, 'source'> = {
+        id: 'visited-countries-fill',
         type: 'fill',
+        'source-layer': 'country_boundaries',
         paint: {
-            'fill-color': '#6EBE8C', // Sage
+            'fill-color': [
+                'case',
+                ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', visitedCountryCodes]],
+                '#6EBE8C', // Sage for visited countries
+                'transparent' // Transparent for non-visited
+            ],
             'fill-opacity': 0.2
         }
     };
@@ -198,8 +209,66 @@ export const GlobeView: React.FC = () => {
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
             <Map
+                ref={mapRef}
                 {...viewState}
-                onMove={(evt: ViewStateChangeEvent) => setViewState(evt.viewState)}
+                onMove={(evt: ViewStateChangeEvent) => {
+                    setViewState(evt.viewState);
+                    handleUserInteraction();
+                }}
+                onClick={(e: any) => {
+                    handleUserInteraction();
+
+                    // Query all features at the click point
+                    const map = mapRef.current?.getMap();
+                    if (map) {
+                        const features = map.queryRenderedFeatures(e.point);
+
+                        // Look for country features in the base map
+                        const countryFeature = features.find((f: any) =>
+                            f.sourceLayer === 'country_label' ||
+                            f.layer?.id?.includes('country') ||
+                            f.properties?.name ||
+                            f.properties?.name_en
+                        );
+
+                        if (countryFeature) {
+                            const countryName = countryFeature.properties.name_en ||
+                                countryFeature.properties.name ||
+                                countryFeature.properties.admin ||
+                                countryFeature.properties.name_long;
+                            const countryCode = countryFeature.properties.iso_3166_1_alpha_2 ||
+                                countryFeature.properties.iso_a2 ||
+                                countryFeature.properties.adm0_a3;
+
+                            if (countryName) {
+                                setSelectedCountry({
+                                    name: countryName,
+                                    code: countryCode,
+                                    x: e.point.x,
+                                    y: e.point.y
+                                });
+                            }
+                        } else {
+                            // Fallback to our custom layers
+                            const features = e.features;
+                            if (features && features.length > 0) {
+                                const feature = features[0];
+                                if (feature.layer.id === 'visited-countries') {
+                                    const countryName = feature.properties.name || feature.properties.admin || feature.properties.name_long;
+                                    const countryCode = feature.properties.iso_a2 || feature.properties.adm0_a3;
+                                    setSelectedCountry({
+                                        name: countryName,
+                                        code: countryCode,
+                                        x: e.point.x,
+                                        y: e.point.y
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }}
+                onWheel={handleUserInteraction}
+                onDrag={handleUserInteraction}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle="mapbox://styles/mapbox/dark-v11"
                 mapboxAccessToken={MAPBOX_TOKEN}
@@ -223,12 +292,14 @@ export const GlobeView: React.FC = () => {
                     maxzoom={14}
                 />
 
-                {/* Visited Countries */}
-                {visitedCountriesGeoJSON && (
-                    <Source id="countries-data" type="geojson" data={visitedCountriesGeoJSON}>
-                        <Layer {...countryLayer} beforeId="flights" />
-                    </Source>
-                )}
+                {/* Mapbox Country Boundaries */}
+                <Source
+                    id="country-boundaries"
+                    type="vector"
+                    url="mapbox://mapbox.country-boundaries-v1"
+                >
+                    <Layer {...visitedCountriesLayer} beforeId="admin-1-boundary" />
+                </Source>
 
                 {/* Flights */}
                 <Source id="flights-data" type="geojson" data={animatedFlightsGeoJSON}>
@@ -241,6 +312,44 @@ export const GlobeView: React.FC = () => {
                 </Source>
 
             </Map>
+
+            {/* Country Popup */}
+            {selectedCountry && (
+                <>
+                    {/* Backdrop to close popup */}
+                    <div
+                        className="absolute inset-0 z-30"
+                        onClick={() => setSelectedCountry(null)}
+                    />
+
+                    {/* Popup */}
+                    <div
+                        className="absolute z-40 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl p-4 pointer-events-auto"
+                        style={{
+                            left: `${selectedCountry.x}px`,
+                            top: `${selectedCountry.y}px`,
+                            transform: 'translate(-50%, -120%)'
+                        }}
+                    >
+                        <div className="flex items-center gap-3">
+                            {selectedCountry.code && (
+                                <img
+                                    src={`https://flagcdn.com/w80/${selectedCountry.code.toLowerCase()}.png`}
+                                    alt={`${selectedCountry.name} flag`}
+                                    className="w-12 h-8 object-cover rounded shadow-md"
+                                    onError={(e) => {
+                                        // Hide flag if it fails to load
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
+                            )}
+                            <div>
+                                <h3 className="text-white font-bold text-lg">{selectedCountry.name}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
 
             <div className="absolute bottom-8 right-8 text-white text-xs opacity-50 pointer-events-none z-10">
                 Powered by Mapbox
