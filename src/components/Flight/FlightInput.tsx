@@ -4,6 +4,7 @@ import { searchAirports } from '../../utils/airports';
 import type { Airport } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { Calendar, MapPin, Plus } from 'lucide-react';
+import { calculateDistance } from '../../utils/distance';
 
 interface FlightInputProps {
     onCancel?: () => void;
@@ -26,7 +27,13 @@ export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess })
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (origin && destination && date) {
-            const distance = 0; // Distance is calculated in context
+            // Calculate distance using Haversine formula
+            const distance = calculateDistance(
+                origin.lat,
+                origin.lon,
+                destination.lat,
+                destination.lon
+            );
 
             addFlight({
                 id: uuidv4(),
