@@ -11,6 +11,41 @@ import { geoInterpolate } from 'd3-geo';
 // Token provided by user
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiemFmYXJpcyIsImEiOiJjbWk4cWI5a2owZWpqMnFyMnVlemNuMzljIn0.f45xGsxe1ngVM6Yz-69ePQ';
 
+// Convert ISO 3166-1 alpha-3 to alpha-2 for flag display
+const alpha3ToAlpha2: Record<string, string> = {
+    'USA': 'us', 'GBR': 'gb', 'CAN': 'ca', 'AUS': 'au', 'DEU': 'de', 'FRA': 'fr',
+    'ESP': 'es', 'ITA': 'it', 'JPN': 'jp', 'CHN': 'cn', 'IND': 'in', 'BRA': 'br',
+    'MEX': 'mx', 'RUS': 'ru', 'NLD': 'nl', 'CHE': 'ch', 'AUT': 'at', 'BEL': 'be',
+    'DNK': 'dk', 'FIN': 'fi', 'IRL': 'ie', 'NOR': 'no', 'POL': 'pl', 'SWE': 'se',
+    'CZE': 'cz', 'HUN': 'hu', 'ROU': 'ro', 'PRT': 'pt', 'GRC': 'gr', 'ISL': 'is',
+    'LUX': 'lu', 'MLT': 'mt', 'HRV': 'hr', 'SVN': 'si', 'SVK': 'sk', 'BGR': 'bg',
+    'SRB': 'rs', 'BIH': 'ba', 'ALB': 'al', 'MKD': 'mk', 'MNE': 'me', 'EST': 'ee',
+    'LVA': 'lv', 'LTU': 'lt', 'UKR': 'ua', 'BLR': 'by', 'MDA': 'md', 'CYP': 'cy',
+    'SGP': 'sg', 'KOR': 'kr', 'THA': 'th', 'IDN': 'id', 'MYS': 'my', 'PHL': 'ph',
+    'VNM': 'vn', 'TUR': 'tr', 'ISR': 'il', 'PAK': 'pk', 'BGD': 'bd', 'LKA': 'lk',
+    'TWN': 'tw', 'HKG': 'hk', 'MAC': 'mo', 'MNG': 'mn', 'NPL': 'np', 'KHM': 'kh',
+    'LAO': 'la', 'MMR': 'mm', 'BRN': 'bn', 'MDV': 'mv', 'BTN': 'bt', 'KAZ': 'kz',
+    'UZB': 'uz', 'TKM': 'tm', 'KGZ': 'kg', 'TJK': 'tj', 'AFG': 'af', 'ARM': 'am',
+    'AZE': 'az', 'GEO': 'ge', 'ARE': 'ae', 'SAU': 'sa', 'QAT': 'qa', 'KWT': 'kw',
+    'BHR': 'bh', 'OMN': 'om', 'JOR': 'jo', 'LBN': 'lb', 'IRQ': 'iq', 'IRN': 'ir',
+    'SYR': 'sy', 'YEM': 'ye', 'ZAF': 'za', 'EGY': 'eg', 'MAR': 'ma', 'KEN': 'ke',
+    'NGA': 'ng', 'ETH': 'et', 'GHA': 'gh', 'TZA': 'tz', 'UGA': 'ug', 'DZA': 'dz',
+    'TUN': 'tn', 'LBY': 'ly', 'SDN': 'sd', 'SEN': 'sn', 'CIV': 'ci', 'CMR': 'cm',
+    'ZWE': 'zw', 'ZMB': 'zm', 'MOZ': 'mz', 'BWA': 'bw', 'NAM': 'na', 'MUS': 'mu',
+    'SYC': 'sc', 'RWA': 'rw', 'AGO': 'ao', 'MDG': 'mg', 'ARG': 'ar', 'CHL': 'cl',
+    'COL': 'co', 'PER': 'pe', 'VEN': 've', 'ECU': 'ec', 'BOL': 'bo', 'PRY': 'py',
+    'URY': 'uy', 'CRI': 'cr', 'PAN': 'pa', 'GTM': 'gt', 'HND': 'hn', 'NIC': 'ni',
+    'SLV': 'sv', 'CUB': 'cu', 'DOM': 'do', 'JAM': 'jm', 'TTO': 'tt', 'BHS': 'bs',
+    'BRB': 'bb', 'HTI': 'ht', 'BLZ': 'bz', 'GUY': 'gy', 'SUR': 'sr', 'NZL': 'nz',
+    'FJI': 'fj', 'PNG': 'pg', 'SLB': 'sb', 'VUT': 'vu', 'WSM': 'ws', 'TON': 'to',
+    'PLW': 'pw', 'FSM': 'fm', 'MHL': 'mh', 'KIR': 'ki', 'NRU': 'nr', 'TUV': 'tv'
+};
+
+const getAlpha2Code = (alpha3Code: string | undefined): string | undefined => {
+    if (!alpha3Code) return undefined;
+    return alpha3ToAlpha2[alpha3Code.toUpperCase()];
+};
+
 export const GlobeView: React.FC = () => {
     const { flights } = useFlights();
     const [viewState, setViewState] = useState({
@@ -258,14 +293,13 @@ export const GlobeView: React.FC = () => {
                                 countryFeature.properties.name ||
                                 countryFeature.properties.admin ||
                                 countryFeature.properties.name_long;
-                            const countryCode = countryFeature.properties.iso_3166_1_alpha_2 ||
-                                countryFeature.properties.iso_a2 ||
-                                countryFeature.properties.adm0_a3;
+                            const countryCodeAlpha3 = countryFeature.properties.iso_3166_1_alpha_3 ||
+                                countryFeature.properties.iso_3166_1;
 
                             if (countryName) {
                                 setSelectedCountry({
                                     name: countryName,
-                                    code: countryCode,
+                                    code: getAlpha2Code(countryCodeAlpha3) || countryCodeAlpha3?.toLowerCase(),
                                     x: e.point.x,
                                     y: e.point.y
                                 });
