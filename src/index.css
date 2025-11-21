@@ -12,6 +12,12 @@
   --font-heading: 'Fredoka One', cursive;
 }
 
+html,
+body {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+}
+
 body {
   @apply bg-lightblue text-navy font-sans;
 }
