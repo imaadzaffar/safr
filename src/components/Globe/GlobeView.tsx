@@ -24,6 +24,7 @@ export const GlobeView: React.FC = () => {
     const mapRef = useRef<any>(null);
     const [isPaused, setIsPaused] = useState(false);
     const inactivityTimerRef = useRef<number | null>(null);
+    const [airportsLoaded, setAirportsLoaded] = useState(false);
 
     // Handle user interaction - pause rotation and set cooldown timer
     const handleUserInteraction = () => {
@@ -39,6 +40,24 @@ export const GlobeView: React.FC = () => {
             setIsPaused(false);
         }, 10000);
     };
+
+    // Check if airports are loaded
+    useEffect(() => {
+        const checkAirports = () => {
+            const airports = getAirports();
+            if (airports.length > 0 && !airportsLoaded) {
+                setAirportsLoaded(true);
+            }
+        };
+
+        // Check immediately
+        checkAirports();
+
+        // Check periodically until loaded
+        const interval = setInterval(checkAirports, 100);
+
+        return () => clearInterval(interval);
+    }, [airportsLoaded]);
 
     // Auto-rotate globe
     useEffect(() => {
@@ -156,6 +175,8 @@ export const GlobeView: React.FC = () => {
 
     // Get list of visited country codes
     const visitedCountryCodes = useMemo(() => {
+        if (!airportsLoaded) return [];
+
         const codes = new Set<string>();
         flights.forEach(f => {
             const origin = findAirportByCode(f.origin);
@@ -164,7 +185,7 @@ export const GlobeView: React.FC = () => {
             if (dest?.countryCode) codes.add(dest.countryCode);
         });
         return Array.from(codes);
-    }, [flights]);
+    }, [flights, airportsLoaded]);
 
     // Country fill layer - colors visited countries using Mapbox boundaries
     const visitedCountriesLayer: Omit<FillLayer, 'source'> = {
