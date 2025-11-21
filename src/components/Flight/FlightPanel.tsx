@@ -5,7 +5,8 @@ import { FlightInput } from './FlightInput';
 
 export const FlightPanel: React.FC = () => {
     const [isAdding, setIsAdding] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(window.innerWidth >= 768); // Collapsed by default on mobile
+    const isMobile = window.innerWidth < 768;
 
     return (
         <div className="absolute md:top-24 bottom-0 md:bottom-auto left-0 md:left-auto md:right-6 w-full md:w-80 z-20 flex flex-col gap-4 pointer-events-none">
@@ -43,7 +44,11 @@ export const FlightPanel: React.FC = () => {
                                 <X size={16} />
                             </button>
                         )}
-                        {isExpanded ? <ChevronUp size={18} className="text-white/70" /> : <ChevronDown size={18} className="text-white/70" />}
+                        {isMobile ? (
+                            isExpanded ? <ChevronDown size={18} className="text-white/70" /> : <ChevronUp size={18} className="text-white/70" />
+                        ) : (
+                            isExpanded ? <ChevronUp size={18} className="text-white/70" /> : <ChevronDown size={18} className="text-white/70" />
+                        )}
                     </div>
                 </div>
 
