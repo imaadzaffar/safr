@@ -6,8 +6,6 @@ interface FlightContextType {
     addFlight: (flight: Flight) => void;
     removeFlight: (id: string) => void;
     updateFlight: (flight: Flight) => void;
-    viewMode: '2D' | '3D';
-    setViewMode: (mode: '2D' | '3D') => void;
 }
 
 const FlightContext = createContext<FlightContextType | undefined>(undefined);
@@ -17,7 +15,6 @@ export const FlightProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const stored = localStorage.getItem('safr_flights');
         return stored ? JSON.parse(stored) : [];
     });
-    const [viewMode, setViewMode] = useState<'2D' | '3D'>('3D');
 
     useEffect(() => {
         localStorage.setItem('safr_flights', JSON.stringify(flights));
@@ -36,7 +33,7 @@ export const FlightProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     return (
-        <FlightContext.Provider value={{ flights, addFlight, removeFlight, updateFlight, viewMode, setViewMode }}>
+        <FlightContext.Provider value={{ flights, addFlight, removeFlight, updateFlight }}>
             {children}
         </FlightContext.Provider>
     );
