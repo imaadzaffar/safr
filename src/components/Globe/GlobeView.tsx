@@ -4,7 +4,7 @@ import Map, { Source, Layer, type ViewStateChangeEvent } from 'react-map-gl';
 // @ts-ignore
 import type { CircleLayer, LineLayer, FillLayer } from 'react-map-gl';
 import { useFlights } from '../../context/FlightContext';
-import { airports } from '../../utils/airports';
+import { getAirports, findAirportByCode } from '../../utils/airports';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { geoInterpolate } from 'd3-geo';
 
@@ -71,6 +71,7 @@ export const GlobeView: React.FC = () => {
 
     // Prepare airport points
     const airportsGeoJSON = useMemo(() => {
+        const airports = getAirports();
         const uniqueAirports = new Set<string>();
         flights.forEach(f => {
             uniqueAirports.add(f.origin);
@@ -109,8 +110,8 @@ export const GlobeView: React.FC = () => {
 
     const animatedFlightsGeoJSON = useMemo(() => {
         const features = flights.map((flight, index) => {
-            const origin = airports.find(a => a.code === flight.origin);
-            const dest = airports.find(a => a.code === flight.destination);
+            const origin = findAirportByCode(flight.origin);
+            const dest = findAirportByCode(flight.destination);
             if (!origin || !dest) return null;
 
             const interpolate = geoInterpolate(
@@ -157,8 +158,8 @@ export const GlobeView: React.FC = () => {
     const visitedCountryCodes = useMemo(() => {
         const codes = new Set<string>();
         flights.forEach(f => {
-            const origin = airports.find(a => a.code === f.origin);
-            const dest = airports.find(a => a.code === f.destination);
+            const origin = findAirportByCode(f.origin);
+            const dest = findAirportByCode(f.destination);
             if (origin?.countryCode) codes.add(origin.countryCode);
             if (dest?.countryCode) codes.add(dest.countryCode);
         });
