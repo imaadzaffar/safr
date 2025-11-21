@@ -3,9 +3,14 @@ import { useFlights } from '../../context/FlightContext';
 import { searchAirports } from '../../utils/airports';
 import type { Airport } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin, Plus } from 'lucide-react';
 
-export const FlightInput: React.FC = () => {
+interface FlightInputProps {
+    onCancel?: () => void;
+    onSuccess?: () => void;
+}
+
+export const FlightInput: React.FC<FlightInputProps> = ({ onCancel, onSuccess }) => {
     const { addFlight } = useFlights();
     const [originQuery, setOriginQuery] = useState('');
     const [destinationQuery, setDestinationQuery] = useState('');
@@ -41,6 +46,7 @@ export const FlightInput: React.FC = () => {
             setOriginQuery('');
             setDestinationQuery('');
             setDate('');
+            if (onSuccess) onSuccess();
         }
     };
 
@@ -133,13 +139,25 @@ export const FlightInput: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <button
-                type="submit"
-                disabled={!origin || !destination || !date}
-                className="mt-4 w-full bg-navy text-white py-2 rounded-md font-bold hover:bg-opacity-90 disabled:opacity-50 transition-colors"
-            >
-                Log Flight
-            </button>
+            <div className="flex gap-2 mt-4">
+                {onCancel && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-lg font-bold hover:bg-gray-200 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                )}
+                <button
+                    type="submit"
+                    disabled={!origin || !destination || !date}
+                    className="flex-1 bg-navy text-white py-3 rounded-lg font-bold hover:bg-navy/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                    <Plus size={18} />
+                    Add Flight
+                </button>
+            </div>
         </form>
     );
 };

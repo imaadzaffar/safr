@@ -2,7 +2,8 @@ import { FlightProvider, useFlights } from './context/FlightContext';
 import { AppShell } from './components/Layout/AppShell';
 import { GlobeView } from './components/Globe/GlobeView';
 import { MapView } from './components/Map/MapView';
-import { Sidebar } from './components/Layout/Sidebar';
+import { TopBar } from './components/Layout/TopBar';
+import { FlightPanel } from './components/Flight/FlightPanel';
 import { ViewToggle } from './components/UI/ViewToggle';
 
 const AppContent: React.FC = () => {
@@ -16,7 +17,8 @@ const AppContent: React.FC = () => {
       </div>
 
       {/* UI Overlays */}
-      <Sidebar />
+      <TopBar />
+      <FlightPanel />
       <ViewToggle />
     </AppShell>
   );
